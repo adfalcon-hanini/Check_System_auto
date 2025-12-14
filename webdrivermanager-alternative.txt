@@ -1,0 +1,33 @@
+Alternative WebDriverManager Configuration (if needed):
+
+Option 1 - Use Cache/Offline Mode:
+```java
+WebDriverManager.chromedriver()
+    .cachePath("C:/webdrivers/")  // Local cache directory
+    .avoidReadReleaseFromRepository()
+    .avoidExport()
+    .setup();
+```
+
+Option 2 - Set Timeout:
+```java
+WebDriverManager.chromedriver()
+    .timeout(60)  // 60 seconds timeout
+    .setup();
+```
+
+Option 3 - Use Proxy (if behind corporate firewall):
+```java
+WebDriverManager.chromedriver()
+    .proxy("http://your-proxy:port")
+    .setup();
+```
+
+Option 4 - Manual Driver Path:
+```java
+System.setProperty("webdriver.chrome.driver", "C:/path/to/chromedriver.exe");
+ChromeOptions options = new ChromeOptions();
+return new ChromeDriver(options);
+```
+
+However, using Selenium Manager (the current solution) is the recommended approach.

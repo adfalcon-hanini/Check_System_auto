@@ -1,0 +1,58 @@
+{
+  "loginData": [
+    {
+      "username": "testuser1@example.com",
+      "password": "Test@123",
+      "expectedResult": "success"
+    },
+    {
+      "username": "testuser2@example.com",
+      "password": "Pass@456",
+      "expectedResult": "success"
+    },
+    {
+      "username": "invalid@example.com",
+      "password": "wrongpass",
+      "expectedResult": "failure"
+    }
+  ],
+  "orderData": [
+    {
+      "orderType": "BUY",
+      "quantity": "10",
+      "price": "100.50"
+    },
+    {
+      "orderType": "SELL",
+      "quantity": "5",
+      "price": "99.75"
+    },
+    {
+      "orderType": "BUY",
+      "quantity": "20",
+      "price": "102.00"
+    }
+  ],
+  "environment": {
+    "baseUrl": "https://devuat.thegroup.com.qa/uat/ar/trading",
+    "timeout": 15,
+    "retryCount": 2
+  },
+  "users": {
+    "admin": {
+      "username": "admin@example.com",
+      "password": "Admin@123",
+      "role": "administrator"
+    },
+    "trader": {
+      "username": "trader@example.com",
+      "password": "Trader@123",
+      "role": "trader"
+    },
+    "viewer": {
+      "username": "viewer@example.com",
+      "password": "Viewer@123",
+      "role": "viewer"
+    }
+  }
+}

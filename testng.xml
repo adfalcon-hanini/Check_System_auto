@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    ========================================================================
+    CHECK_SYSTEM_AUTO - DYNAMIC CONFIGURATION
+    ========================================================================
+
+    This is the ONLY TestNG configuration file for the entire framework.
+    It provides dynamic, group-based test execution with runtime control.
+
+    USAGE EXAMPLES:
+    ===============
+
+    1. Run ALL tests:
+       mvn test
+
+    2. Run specific module:
+       mvn test -Dgroups=clients
+       mvn test -Dgroups=portfolio
+       mvn test -Dgroups=orders
+       mvn test -Dgroups=agm
+       mvn test -Dgroups=fund
+       mvn test -Dgroups=xdp
+       mvn test -Dgroups=api
+
+    3. Run by test type:
+       mvn test -Dgroups=database
+       mvn test -Dgroups=ui
+       mvn test -Dgroups=api
+
+    4. Run test suites:
+       mvn test -Dgroups=smoke
+       mvn test -Dgroups=regression
+       mvn test -Dgroups=sanity
+
+    5. Run multiple groups:
+       mvn test -Dgroups="clients,portfolio"
+       mvn test -Dgroups="smoke,database"
+
+    6. Exclude specific groups:
+       mvn test -DexcludedGroups=slow
+       mvn test -Dgroups=regression -DexcludedGroups="ui,slow"
+
+    7. Run with specific environment:
+       mvn test -Denv=dev -Dgroups=smoke
+       mvn test -Denv=qa -Dgroups=regression
+
+    FEATURES:
+    =========
+    - Single configuration file for entire framework
+    - Dynamic group-based test selection
+    - Runtime test filtering
+    - Parallel execution support
+    - Automatic PDF and Allure report generation
+    - Module-based organization
+    - Environment-specific execution
+
+    GROUP DEFINITIONS:
+    ==================
+
+    By Module:
+    - clients       : Client data and operations
+    - portfolio     : Portfolio data and calculations
+    - orders        : Order management and trading
+    - agm           : AGM operations and virtual trading
+    - fund          : Fund client operations
+    - xdp           : Market data (XDP/FIX protocol)
+    - api           : API testing
+    - config        : Configuration tests
+    - navigation    : Navigation utilities
+
+    By Type:
+    - database      : Database query tests
+    - ui            : UI automation tests
+    - api           : API tests
+
+    By Suite:
+    - smoke         : Fast, critical tests
+    - regression    : Comprehensive test coverage
+    - sanity        : Quick validation tests
+
+    By Performance:
+    - fast          : Quick tests (< 1 minute)
+    - slow          : Longer tests (> 1 minute)
+
+    ========================================================================
+-->
+
+<suite name="Check_System_Auto - Dynamic Suite" parallel="none" thread-count="3" verbose="1">
+
+    <!-- ===================================================================
+         GLOBAL LISTENERS
+         Applied to all tests in the suite
+         =================================================================== -->
+    <listeners>
+        <listener class-name="com.example.listeners.TestListener"/>
+        <listener class-name="com.example.listeners.RetryListener"/>
+        <listener class-name="com.example.listeners.PDFReportListener"/>
+    </listeners>
+
+    <!-- ===================================================================
+         GLOBAL PARAMETERS
+         Can be overridden via -D flags at runtime
+         =================================================================== -->
+    <parameter name="browser" value="chrome"/>
+    <parameter name="headless" value="true"/>
+    <parameter name="env" value="dev"/>
+
+    <!-- ===================================================================
+         MAIN TEST SUITE
+         Uses package-based scanning with group filtering
+         =================================================================== -->
+    <test name="Dynamic Test Execution">
+        <!-- Define test packages to scan -->
+        <packages>
+            <package name="com.example.tests.clients"/>
+            <package name="com.example.tests.portfolio"/>
+            <package name="com.example.tests.orders"/>
+            <package name="com.example.tests.agm"/>
+            <package name="com.example.tests.fund"/>
+            <package name="com.example.tests.fix"/>
+            <package name="com.example.tests.api"/>
+            <package name="com.example.tests.config"/>
+            <package name="com.example.tests.navigation"/>
+        </packages>
+
+        <!--
+            Groups are controlled via command line:
+            - Use -Dgroups=<group1,group2> to include specific groups
+            - Use -DexcludedGroups=<group1,group2> to exclude specific groups
+
+            Examples:
+            mvn test -Dgroups=smoke
+            mvn test -Dgroups="clients,portfolio"
+            mvn test -Dgroups=regression -DexcludedGroups=slow
+        -->
+    </test>
+
+</suite>

@@ -1,0 +1,230 @@
+# ==================== MAVEN ====================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ==================== JAVA ====================
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# ==================== LOGS & REPORTS ====================
+logs/
+*.log
+test-output.log
+application.log
+test-execution.log
+screenshots/
+*.hprof
+
+# ==================== TEST REPORTS ====================
+# Allure
+allure-results/
+allure-report/
+.allure/
+
+# Surefire
+surefire-reports/
+
+# TestNG
+test-output/
+test-results/
+
+# JaCoCo
+*.exec
+
+# PDF Reports (auto-generated)
+Oracle-DB-Test-Report-*.pdf
+Test-Execution-Report.pdf
+
+# ==================== IDE - INTELLIJ IDEA ====================
+.idea/
+*.iws
+*.iml
+*.ipr
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries
+.idea/shelf
+.idea/aws.xml
+.idea/dataSources/
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+.idea/assetWizardSettings.xml
+.idea/gradle.xml
+.idea/misc.xml
+.idea/encodings.xml
+out/
+
+# ==================== IDE - ECLIPSE ====================
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.apt_generated
+.classpath
+.factorypath
+.project
+.springBeans
+.sts4-cache
+.externalToolBuilders/
+*.launch
+.cproject
+.autotools
+.scala_dependencies
+.worksheet
+
+# ==================== IDE - NETBEANS ====================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+nbactions.xml
+nb-configuration.xml
+
+# ==================== IDE - VS CODE ====================
+.vscode/
+.code-workspace
+*.code-workspace
+
+# ==================== OS SPECIFIC ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+nul
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==================== SELENIUM & WEBDRIVER ====================
+chromedriver
+chromedriver.exe
+geckodriver
+geckodriver.exe
+msedgedriver.exe
+IEDriverServer.exe
+operadriver
+operadriver.exe
+safaridriver
+phantomjs
+
+# ==================== PROJECT SPECIFIC ====================
+# Claude AI
+.claude/settings.local.json
+.claude/history/
+
+# Temporary files
+PWA1
+APIS
+*.tmp
+temp/
+tmp/
+
+# Database credentials (if stored locally)
+database.properties
+db-credentials.properties
+
+# Environment-specific configs (should use templates)
+*-local.properties
+*.local.properties
+
+# Generated documentation
+docs/generated/
+
+# Archived/backup files
+*.md.bak
+REFACTORING_*.md
+*_BACKUP_*
+*_OLD.*
+*_old.*
+
+# Test data exports
+data-testid-exports/
+exports/
+output/
+
+# Report files
+*.pdf
+Test-Execution-Report*.pdf
+
+# Compiled sources
+*.com
+*.dll
+*.exe
+*.o
+*.so
+
+# Package Files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Virtual Machine crash logs
+hs_err_pid*
+
+# Misc
+.cache
+.npm
+.yarn/
+node_modules/

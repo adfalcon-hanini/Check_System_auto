@@ -1,0 +1,49 @@
+# ======================================================================
+# Oracle Database Configuration Template
+# ======================================================================
+#
+# INSTRUCTIONS:
+# 1. Copy this file to: database.properties
+# 2. Update the values below with your actual database credentials
+# 3. DO NOT commit database.properties to version control
+#
+# The database.properties file is already in .gitignore for security
+# ======================================================================
+
+# Database Connection Details
+# ======================================================================
+db.host=DB01M:1523/GRPUAT
+db.port=1523
+db.service=GRPUAT
+db.username=sec1
+db.password=sec12345
+
+# Connection Pool Settings
+# ======================================================================
+db.pool.minSize=5
+db.pool.maxSize=20
+db.pool.timeout=30000
+
+# Query Timeout (in seconds)
+# ======================================================================
+db.query.timeout=60
+
+# Connection URL (Auto-generated, usually don't need to modify)
+# ======================================================================
+db.url=jdbc:oracle:thin:@${db.host}
+
+# Environment Identifier
+# ======================================================================
+# Valid values: dev, qa, stage, prod
+environment=qa
+
+# ======================================================================
+# NOTES:
+# ======================================================================
+#
+# - Keep this file secure and never commit it to version control
+# - The template file (database.properties.template) can be committed
+# - Update credentials when switching between environments
+# - Ensure Oracle JDBC driver is available in classpath
+#
+# ======================================================================
