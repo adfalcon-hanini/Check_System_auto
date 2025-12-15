@@ -1,6 +1,6 @@
 @echo off
 REM =============================================================================
-REM Oracle Database Testing Framework - PDF Report Generator
+REM Check System Auto Tool - PDF Report Generator
 REM =============================================================================
 REM
 REM This script generates a PDF report from Allure test results
@@ -16,7 +16,7 @@ setlocal enabledelayedexpansion
 
 echo.
 echo =========================================================================
-echo   Oracle Database Testing Framework - PDF Report Generator
+echo   Check System Auto Tool - PDF Report Generator
 echo =========================================================================
 echo.
 
@@ -44,7 +44,7 @@ echo [INFO] Generating PDF report...
 echo.
 
 REM Generate PDF report
-mvn exec:java -Dexec.mainClass="com.example.utils.AllurePDFReportGenerator" -Dexec.args="target/allure-results Test-Execution-Report.pdf" -q
+mvn exec:java -Dexec.mainClass="com.example.utils.AllurePDFReportGenerator" -Dexec.args="target/allure-results Check-System-Auto-Report.pdf" -q
 
 if errorlevel 1 (
     echo [ERROR] Failed to generate PDF report!
@@ -57,7 +57,7 @@ echo =========================================================================
 echo   PDF Report generated successfully!
 echo =========================================================================
 echo.
-echo Report location: Test-Execution-Report.pdf
+echo Report location: Check-System-Auto-Report.pdf
 echo.
 echo You can now:
 echo   1. Open the PDF report

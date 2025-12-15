@@ -69,14 +69,14 @@ public class AllurePDFReportGenerator {
     }
 
     private static void addTitle(Document document) {
-        Paragraph title = new Paragraph("Test Execution Report")
+        Paragraph title = new Paragraph("Check System Auto Tool")
                 .setFontSize(24)
                 .setBold()
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(10);
         document.add(title);
 
-        Paragraph subtitle = new Paragraph("Oracle Database Testing Framework")
+        Paragraph subtitle = new Paragraph("Test Execution Report")
                 .setFontSize(14)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(20);
@@ -382,7 +382,7 @@ public class AllurePDFReportGenerator {
 
     public static void main(String[] args) {
         String allureResultsPath = args.length > 0 ? args[0] : "target/allure-results";
-        String outputPath = args.length > 1 ? args[1] : "Test-Execution-Report.pdf";
+        String outputPath = args.length > 1 ? args[1] : "Check-System-Auto-Report.pdf";
 
         generateReport(allureResultsPath, outputPath);
     }
