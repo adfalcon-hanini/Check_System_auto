@@ -296,4 +296,13 @@ public class APIConfigManager {
         });
         logger.info("======================================");
     }
+
+    /**
+     * Get current date in dd-MM-yyyy format
+     * @return Current date as String
+     */
+    public static String getCurrentDate() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy");
+        return sdf.format(new java.util.Date());
+    }
 }

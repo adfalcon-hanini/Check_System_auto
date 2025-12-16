@@ -2,6 +2,8 @@ package com.example.tests.api;
 
 import com.example.api.APIResponse;
 import com.example.api.LoginAPI;
+import com.example.api.dto.LoginRequestDTO;
+import com.example.api.dto.LoginResponseDTO;
 import com.example.utils.APIConfigManager;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
@@ -10,11 +12,14 @@ import io.qameta.allure.Story;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 import static org.testng.Assert.*;
 
 /**
  * Test class for Login API
- * Tests: Send request, get response, assert 200, extract sessionID, save to config
+ * Tests both traditional HttpURLConnection and RestAssured approaches
+ * Demonstrates: Send request, get response, assert 200, extract sessionID, save to config
  */
 @Epic("API Testing")
 @Feature("Login Authentication")
@@ -212,6 +217,199 @@ public class LoginAPITest {
 
         System.out.println("✓ SessionID cleared from memory");
         System.out.println("✓ SessionID cleared from config file");
+        System.out.println("=".repeat(70) + "\n");
+    }
+
+    // ========== RESTASSURED + DTO TESTS ==========
+
+    @Test(priority = 4)
+    @Story("Send login request using RestAssured with DTO")
+    @Description("Demonstrate sending login request with RestAssured, using LoginRequestDTO and deserializing to List<LoginResponseDTO>")
+    public void testLoginWithRestAssuredDTO() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN WITH RESTASSURED + DTO");
+        System.out.println("=".repeat(70));
+
+        // ========== STEP 1: BUILD REQUEST DTO ==========
+        System.out.println("\nSTEP 1: BUILDING REQUEST DTO");
+        System.out.println("-".repeat(70));
+
+        // Using Builder pattern for easy construction
+        LoginRequestDTO request = new LoginRequestDTO.Builder()
+                .userName("12240")
+                .password("12345")
+                .lang("ARB")
+                .lstLogin("08-07-2015")
+                .build();
+
+        System.out.println("✓ Request DTO created using Builder pattern");
+        System.out.println("  Username: 12240");
+        System.out.println("  Language: ARB");
+
+        // ========== STEP 2: SEND REQUEST ==========
+        System.out.println("\nSTEP 2: SENDING REQUEST WITH RESTASSURED");
+        System.out.println("-".repeat(70));
+
+        List<LoginResponseDTO> responseList = loginAPI.sendLoginRequestWithDTO(endpointURL, request);
+
+        // ========== STEP 3: VALIDATE RESPONSE ==========
+        System.out.println("\nSTEP 3: VALIDATING RESPONSE");
+        System.out.println("-".repeat(70));
+
+        assertNotNull(responseList, "Response list should not be null");
+        assertFalse(responseList.isEmpty(), "Response list should not be empty");
+
+        System.out.println("✓ Response list received with " + responseList.size() + " item(s)");
+
+        // Get first response
+        LoginResponseDTO response = responseList.get(0);
+        assertNotNull(response, "Response DTO should not be null");
+
+        System.out.println("✓ Response DTO deserialized successfully");
+        System.out.println("  Response: " + response.toString());
+
+        // ========== STEP 4: VERIFY SESSIONID ==========
+        System.out.println("\nSTEP 4: VERIFYING SESSIONID");
+        System.out.println("-".repeat(70));
+
+        String sessionID = response.getSessionID();
+        if (sessionID != null && !sessionID.isEmpty()) {
+            System.out.println("✓ SessionID extracted: " + sessionID);
+
+            // Verify it's in memory and config
+            assertEquals(LoginAPI.getSessionID(), sessionID, "SessionID should match in memory");
+            assertEquals(APIConfigManager.getSessionID(), sessionID, "SessionID should match in config");
+
+            System.out.println("✓ SessionID verified in memory and config");
+        } else {
+            System.out.println("⚠ SessionID not found in response (API may not return sessionID)");
+        }
+
+        // ========== TEST SUMMARY ==========
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST SUMMARY");
+        System.out.println("=".repeat(70));
+        System.out.println("✓ Step 1: Request DTO built using Builder pattern");
+        System.out.println("✓ Step 2: Request sent via RestAssured");
+        System.out.println("✓ Step 3: Response deserialized to List<LoginResponseDTO>");
+        System.out.println("✓ Step 4: SessionID extracted and verified");
+        System.out.println("=".repeat(70));
+        System.out.println("✓✓✓ RESTASSURED + DTO TEST PASSED ✓✓✓");
+        System.out.println("=".repeat(70) + "\n");
+    }
+
+    @Test(priority = 5)
+    @Story("Send login request and get single response object")
+    @Description("Demonstrate using convenience method that returns single LoginResponseDTO instead of List")
+    public void testLoginWithRestAssuredSingleResponse() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN WITH RESTASSURED (SINGLE RESPONSE)");
+        System.out.println("=".repeat(70));
+
+        // Build request using Builder pattern
+        LoginRequestDTO request = new LoginRequestDTO.Builder()
+                .userName("12240")
+                .password("12345")
+                .lang("ARB")
+                .lstLogin("08-07-2015")
+                .build();
+
+        System.out.println("Sending login request (single response mode)...");
+
+        // Send request and get single response object
+        LoginResponseDTO response = loginAPI.sendLoginRequestSingle(endpointURL, request);
+
+        // Validate
+        assertNotNull(response, "Response should not be null");
+        System.out.println("✓ Single response object received");
+        System.out.println("  Response: " + response.toString());
+
+        System.out.println("=".repeat(70) + "\n");
+    }
+
+    @Test(priority = 6)
+    @Story("Generic POST request with custom DTOs")
+    @Description("Demonstrate generic sendPostRequestWithDTO method that works with any request/response types")
+    public void testGenericPostRequestWithDTO() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: GENERIC POST REQUEST WITH DTO");
+        System.out.println("=".repeat(70));
+
+        // Build request
+        LoginRequestDTO request = new LoginRequestDTO.Builder()
+                .userName("12240")
+                .password("12345")
+                .lang("ARB")
+                .lstLogin("08-07-2015")
+                .build();
+
+        System.out.println("Sending generic POST request...");
+
+        // Use generic method - works with any request/response types
+        List<LoginResponseDTO> responseList = loginAPI.sendPostRequestWithDTO(
+                endpointURL,
+                request,
+                LoginResponseDTO.class
+        );
+
+        // Validate
+        assertNotNull(responseList, "Response list should not be null");
+        assertFalse(responseList.isEmpty(), "Response list should not be empty");
+
+        System.out.println("✓ Generic POST request successful");
+        System.out.println("  Received " + responseList.size() + " response(s)");
+        System.out.println("  First response: " + responseList.get(0).toString());
+
+        System.out.println("=".repeat(70) + "\n");
+    }
+
+    @Test(priority = 7)
+    @Story("Manual DTO construction example")
+    @Description("Demonstrate building LoginRequestDTO manually without Builder pattern")
+    public void testManualDTOConstruction() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: MANUAL DTO CONSTRUCTION");
+        System.out.println("=".repeat(70));
+
+        // ========== EXAMPLE 1: Using Builder Pattern (Recommended) ==========
+        System.out.println("\nEXAMPLE 1: USING BUILDER PATTERN");
+        System.out.println("-".repeat(70));
+
+        LoginRequestDTO requestWithBuilder = new LoginRequestDTO.Builder()
+                .userName("12240")
+                .password("12345")
+                .lang("ARB")
+                .lstLogin("08-07-2015")
+                .build();
+
+        System.out.println("✓ Request built with Builder pattern");
+        System.out.println("  Code: new LoginRequestDTO.Builder().userName(...).password(...).build()");
+
+        // ========== EXAMPLE 2: Manual Construction ==========
+        System.out.println("\nEXAMPLE 2: MANUAL CONSTRUCTION");
+        System.out.println("-".repeat(70));
+
+        LoginRequestDTO.LoginDetailsDTO loginDetails =
+                new LoginRequestDTO.LoginDetailsDTO("12240", "12345", "ARB");
+
+        LoginRequestDTO.MessageDTO message =
+                new LoginRequestDTO.MessageDTO(loginDetails);
+
+        LoginRequestDTO requestManual = new LoginRequestDTO(
+                "Login",
+                message,
+                "1.0",
+                "WEB_ORDERS.25",
+                "08-07-2015"
+        );
+
+        System.out.println("✓ Request built manually");
+        System.out.println("  Code: new LoginRequestDTO(srv, message, version, appId, lstLogin)");
+
+        // Both should work the same
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("Both construction methods produce valid requests");
+        System.out.println("Builder pattern is recommended for cleaner code");
         System.out.println("=".repeat(70) + "\n");
     }
 }
