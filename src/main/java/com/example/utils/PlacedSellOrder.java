@@ -10,7 +10,7 @@ import com.example.enums.OrderType;
  */
 public class PlacedSellOrder extends BaseOrderManager {
 
-    private static final String DEFAULT_SELL_NIN = "12240";
+    private static final String DEFAULT_SELL_NIN = "71125";
 
     /**
      * Constructor

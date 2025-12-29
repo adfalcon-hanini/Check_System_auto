@@ -25,12 +25,20 @@ public class CompaniesAPITest {
     @BeforeClass
     @Step("Initialize CompaniesAPI client")
     public void setup() {
-        logger.info("═══════════════════════════════════════════════════════════");
-        logger.info("Setting up CompaniesAPI Test Suite");
-        logger.info("═══════════════════════════════════════════════════════════");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("INITIALIZING COMPANIESAPI TEST");
+        System.out.println("=".repeat(70));
 
         companiesAPI = new CompaniesAPI(BASE_URL);
-        logger.info("CompaniesAPI client initialized with base URL: {}", BASE_URL);
+
+        System.out.println("Base URL: " + BASE_URL);
+        System.out.println("Endpoint URL: " + ENDPOINT_URL);
+        System.out.println("CompaniesAPI client initialized successfully");
+        System.out.println("=".repeat(70) + "\n");
+
+        logger.info("CompaniesAPI Test Suite initialized");
+        logger.info("Base URL: {}", BASE_URL);
+        logger.info("Endpoint URL: {}", ENDPOINT_URL);
     }
 
     @Test(priority = 1)
@@ -38,12 +46,15 @@ public class CompaniesAPITest {
     @Description("Test sending GET_COMPS request to /jetrade/process endpoint with JSON body")
     @Severity(SeverityLevel.CRITICAL)
     public void testSendGetCompsRequest() {
-        logger.info("\n╔════════════════════════════════════════════════════════════════╗");
-        logger.info("║           TEST: Send GET_COMPS Request                        ║");
-        logger.info("╚════════════════════════════════════════════════════════════════╝");
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: GET_COMPS REQUEST");
+        System.out.println("=".repeat(70));
 
         try {
-            // Prepare JSON request
+            // ========== STEP 1: PREPARE REQUEST ==========
+            System.out.println("\nSTEP 1: PREPARING GET_COMPS REQUEST");
+            System.out.println("-".repeat(70));
+
             String jsonRequest = "{\n" +
                     "    \"Srv\": \"GET_COMPS\",\n" +
                     "    \"Message\": {},\n" +
@@ -52,68 +63,114 @@ public class CompaniesAPITest {
                     "    \"LstLogin\": \"08-07-2015\"\n" +
                     "}";
 
-            Allure.step("Prepare API request");
-            logger.info("\n[Request Details]");
-            logger.info("URL Endpoint: {}", ENDPOINT_URL);
-            logger.info("JSON Request:\n{}", jsonRequest);
+            System.out.println("Endpoint: " + ENDPOINT_URL);
+            System.out.println("Service: GET_COMPS");
+            System.out.println("Request Body:");
+            System.out.println(jsonRequest);
 
-            // Send request
-            Allure.step("Send request to endpoint with JSON body");
+            Allure.step("Prepare GET_COMPS request");
+            logger.info("Endpoint: {}", ENDPOINT_URL);
+            logger.info("Request JSON:\n{}", jsonRequest);
+
+            // ========== STEP 2: SEND REQUEST ==========
+            System.out.println("\nSTEP 2: SENDING REQUEST TO API");
+            System.out.println("-".repeat(70));
+
+            Allure.step("Send GET_COMPS request to endpoint");
             APIResponse response = companiesAPI.sendRequest(ENDPOINT_URL, jsonRequest);
 
-            // Verify response
-            Allure.step("Verify response is received");
-            Assert.assertNotNull(response, "API response should not be null");
-            logger.info("✓ Response received");
+            System.out.println("Request sent successfully");
+            logger.info("Request sent to: {}", ENDPOINT_URL);
 
-            // Check status code
-            logger.info("\n[Response Details]");
+            // ========== STEP 3: VERIFY RESPONSE RECEIVED ==========
+            System.out.println("\nSTEP 3: VERIFY RESPONSE RECEIVED");
+            System.out.println("-".repeat(70));
+
+            Allure.step("Verify response is not null");
+            Assert.assertNotNull(response, "API response should not be null");
+            System.out.println("✓ ASSERTION PASSED: Response is not null");
+            logger.info("✓ Response received successfully");
+
+            // ========== STEP 4: PRINT RESPONSE DETAILS ==========
+            System.out.println("\nSTEP 4: RESPONSE DETAILS");
+            System.out.println("-".repeat(70));
+            System.out.println("Status Code: " + response.getStatusCode());
+            System.out.println("Request URL: " + response.getRequestUrl());
+            System.out.println("Is Success: " + response.isSuccess());
+            System.out.println("Response Body:");
+            System.out.println(response.getResponseBody());
+
             logger.info("Status Code: {}", response.getStatusCode());
             logger.info("Request URL: {}", response.getRequestUrl());
-            logger.info("Success: {}", response.isSuccess());
+            logger.info("Response Body: {}", response.getResponseBody());
 
-            // Verify status code is 200
-            Allure.step("Verify response status code is 200");
+            // ========== STEP 5: ASSERT STATUS CODE 200 ==========
+            System.out.println("\nSTEP 5: ASSERTING RESPONSE STATUS CODE");
+            System.out.println("-".repeat(70));
 
-            System.out.println("\n╔════════════════════════════════════════════════════════════════╗");
-            System.out.println("║              STATUS CODE CHECK                                ║");
-            System.out.println("╚════════════════════════════════════════════════════════════════╝");
             System.out.println("Expected Status Code: 200");
             System.out.println("Actual Status Code: " + response.getStatusCode());
 
-            if (response.getStatusCode() == 200) {
-                System.out.println("Result: ✓ PASS - Status code is 200 (Success)");
-                logger.info("✓ Status code assertion PASSED: 200");
-            } else {
-                System.out.println("Result: ✗ FAIL - Status code is not 200");
-                logger.error("✗ Status code assertion FAILED: Expected 200, but got {}", response.getStatusCode());
-            }
-            System.out.println("════════════════════════════════════════════════════════════════\n");
-
+            Allure.step("Verify response status code is 200");
             Assert.assertEquals(response.getStatusCode(), 200,
-                "Status code check failed! Expected: 200, but got: " + response.getStatusCode());
+                "Expected status code 200 but got: " + response.getStatusCode());
 
-            // Verify response body is not empty
+            System.out.println("✓ ASSERTION PASSED: Status code is 200 (SUCCESS)");
+            logger.info("✓ Status code assertion PASSED: 200");
+
+            // ========== STEP 6: VERIFY RESPONSE BODY NOT EMPTY ==========
+            System.out.println("\nSTEP 6: VERIFYING RESPONSE BODY");
+            System.out.println("-".repeat(70));
+
             Allure.step("Verify response body is not empty");
             Assert.assertNotNull(response.getResponseBody(), "Response body should not be null");
             Assert.assertFalse(response.getResponseBody().isEmpty(), "Response body should not be empty");
-            logger.info("✓ Response body is not empty");
 
-            // Log response body
-            logger.info("\n[Response Body]");
-            logger.info("{}", response.getResponseBody());
+            System.out.println("✓ ASSERTION PASSED: Response body is not null");
+            System.out.println("✓ ASSERTION PASSED: Response body is not empty");
+            System.out.println("Response length: " + response.getResponseBody().length() + " characters");
+            logger.info("✓ Response body validation PASSED");
 
-            // Attach to Allure report
+            // ========== STEP 7: ATTACH TO ALLURE REPORT ==========
+            System.out.println("\nSTEP 7: ATTACHING EVIDENCE TO ALLURE REPORT");
+            System.out.println("-".repeat(70));
+
             Allure.addAttachment("Request JSON", "application/json", jsonRequest);
-            Allure.addAttachment("Response Status", String.valueOf(response.getStatusCode()));
+            Allure.addAttachment("Response Status Code", String.valueOf(response.getStatusCode()));
             Allure.addAttachment("Response Body", "application/json", response.getResponseBody());
 
-            logger.info("\n╔════════════════════════════════════════════════════════════════╗");
+            System.out.println("✓ Request JSON attached to Allure report");
+            System.out.println("✓ Response Status attached to Allure report");
+            System.out.println("✓ Response Body attached to Allure report");
+            logger.info("✓ All evidence attached to Allure report");
+
+            // ========== TEST SUMMARY ==========
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("TEST SUMMARY");
+            System.out.println("=".repeat(70));
+            System.out.println("✓ Step 1: Request prepared");
+            System.out.println("✓ Step 2: Request sent successfully");
+            System.out.println("✓ Step 3: Response received");
+            System.out.println("✓ Step 4: Response details printed");
+            System.out.println("✓ Step 5: Status code verified (200)");
+            System.out.println("✓ Step 6: Response body validated");
+            System.out.println("✓ Step 7: Evidence attached to Allure report");
+            System.out.println("=".repeat(70));
+            System.out.println("✓✓✓ ALL STEPS PASSED ✓✓✓");
+            System.out.println("=".repeat(70) + "\n");
+
+            logger.info("╔════════════════════════════════════════════════════════════════╗");
             logger.info("║           TEST PASSED: GET_COMPS Request                      ║");
             logger.info("╚════════════════════════════════════════════════════════════════╝");
 
         } catch (Exception e) {
-            logger.error("\n╔════════════════════════════════════════════════════════════════╗");
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("✗✗✗ TEST FAILED ✗✗✗");
+            System.out.println("=".repeat(70));
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("=".repeat(70) + "\n");
+
+            logger.error("╔════════════════════════════════════════════════════════════════╗");
             logger.error("║           TEST FAILED: GET_COMPS Request                      ║");
             logger.error("╚════════════════════════════════════════════════════════════════╝");
             logger.error("Error details: {}", e.getMessage(), e);

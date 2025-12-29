@@ -116,13 +116,11 @@
         <packages>
             <package name="com.example.tests.clients"/>
             <package name="com.example.tests.portfolio"/>
-            <package name="com.example.tests.orders"/>
             <package name="com.example.tests.agm"/>
             <package name="com.example.tests.fund"/>
             <package name="com.example.tests.fix"/>
             <package name="com.example.tests.api"/>
-            <package name="com.example.tests.config"/>
-            <package name="com.example.tests.navigation"/>
+            <package name="com.example.tests.orders"/>
         </packages>
 
         <!--

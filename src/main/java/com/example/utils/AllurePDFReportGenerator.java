@@ -200,14 +200,9 @@ public class AllurePDFReportGenerator {
             addTestGroup(document, "Broken Tests", groupedTests.get("broken"), WARNING_COLOR);
         }
 
-        // Show summary of passed tests (not all details)
+        // Show detailed table of passed tests
         if (groupedTests.containsKey("passed")) {
-            Paragraph passedHeader = new Paragraph("Passed Tests: " + groupedTests.get("passed").size())
-                    .setFontSize(14)
-                    .setBold()
-                    .setFontColor(SUCCESS_COLOR)
-                    .setMarginTop(10);
-            document.add(passedHeader);
+            addTestGroup(document, "Passed Tests", groupedTests.get("passed"), SUCCESS_COLOR);
         }
     }
 
@@ -219,21 +214,28 @@ public class AllurePDFReportGenerator {
                 .setMarginTop(10);
         document.add(groupHeader);
 
-        Table testTable = new Table(UnitValue.createPercentArray(new float[]{4, 1, 2}))
+        Table testTable = new Table(UnitValue.createPercentArray(new float[]{3, 2, 1, 1, 1}))
                 .useAllAvailableWidth();
 
         addHeaderCell(testTable, "Test Name");
+        addHeaderCell(testTable, "Class Name");
         addHeaderCell(testTable, "Status");
+        addHeaderCell(testTable, "Status Code");
         addHeaderCell(testTable, "Duration");
 
         for (Map<String, Object> test : tests) {
             String name = (String) test.get("name");
+            String className = (String) test.getOrDefault("className", "N/A");
             String status = (String) test.get("status");
+            String statusCode = (String) test.getOrDefault("statusCode", "-");
             long duration = ((Number) test.get("duration")).longValue();
 
             testTable.addCell(createCell(name, TextAlignment.LEFT));
+            testTable.addCell(createCell(className, TextAlignment.LEFT));
             testTable.addCell(createCell(status.toUpperCase(), TextAlignment.CENTER)
                     .setFontColor(color));
+            testTable.addCell(createCell(statusCode, TextAlignment.CENTER)
+                    .setFontColor(statusCode.equals("200") ? SUCCESS_COLOR : ColorConstants.BLACK));
             testTable.addCell(createCell(formatDuration(duration), TextAlignment.CENTER));
         }
 
@@ -339,14 +341,34 @@ public class AllurePDFReportGenerator {
                 case "skipped": skipped++; break;
             }
 
-            // Extract suite name
+            // Extract suite name and class name from labels
             String suiteName = "Unknown Suite";
+            String className = "N/A";
             if (testResult.has("labels")) {
                 JsonArray labels = testResult.getAsJsonArray("labels");
                 for (int i = 0; i < labels.size(); i++) {
                     JsonObject label = labels.get(i).getAsJsonObject();
-                    if (label.get("name").getAsString().equals("suite")) {
-                        suiteName = label.get("value").getAsString();
+                    String labelName = label.get("name").getAsString();
+                    String labelValue = label.get("value").getAsString();
+
+                    if (labelName.equals("suite")) {
+                        suiteName = labelValue;
+                    } else if (labelName.equals("testClass")) {
+                        // Extract simple class name (remove package)
+                        String[] parts = labelValue.split("\\.");
+                        className = parts[parts.length - 1];
+                    }
+                }
+            }
+
+            // Extract status code from parameters
+            String statusCode = "-";
+            if (testResult.has("parameters")) {
+                JsonArray parameters = testResult.getAsJsonArray("parameters");
+                for (int i = 0; i < parameters.size(); i++) {
+                    JsonObject param = parameters.get(i).getAsJsonObject();
+                    if (param.has("name") && param.get("name").getAsString().equals("statusCode")) {
+                        statusCode = param.get("value").getAsString();
                         break;
                     }
                 }
@@ -362,7 +384,9 @@ public class AllurePDFReportGenerator {
             // Add test details
             Map<String, Object> testInfo = new HashMap<>();
             testInfo.put("name", name);
+            testInfo.put("className", className);
             testInfo.put("status", status);
+            testInfo.put("statusCode", statusCode);
             testInfo.put("duration", duration);
             testInfo.put("suite", suiteName);
             tests.add(testInfo);
