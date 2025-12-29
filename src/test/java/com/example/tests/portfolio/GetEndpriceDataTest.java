@@ -20,8 +20,8 @@ public class GetEndpriceDataTest {
     private OracleDBConnection dbConnection;
     private GetEndpriceData endpriceData;
 
-    private static final String TARGET_DATE = "20-Nov-2025";
-    private static final String TARGET_COMPANY = "BRES";
+    private static final String TARGET_DATE = "15-DEC-2025";
+    private static final String TARGET_COMPANY = "BLDN";
     private static final String EXACT_DATE = "20-DEC-2025";
 
     @BeforeClass

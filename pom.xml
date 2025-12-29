@@ -40,6 +40,10 @@
         <!-- Database -->
         <oracle.version>21.9.0.0</oracle.version>
 
+        <!-- API Testing -->
+        <restassured.version>5.3.2</restassured.version>
+        <jackson.version>2.15.3</jackson.version>
+
         <!-- Maven Plugins -->
         <maven-compiler.version>3.12.1</maven-compiler.version>
         <maven-surefire.version>3.2.5</maven-surefire.version>
@@ -137,6 +141,33 @@
             <artifactId>itext7-core</artifactId>
             <version>8.0.2</version>
             <type>pom</type>
+        </dependency>
+
+        <!-- ===== API TESTING ===== -->
+        <!-- RestAssured for API testing -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${restassured.version}</version>
+        </dependency>
+
+        <!-- Jackson for JSON serialization/deserialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
     </dependencies>

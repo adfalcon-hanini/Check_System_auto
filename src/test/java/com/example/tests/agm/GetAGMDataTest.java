@@ -21,7 +21,7 @@ public class GetAGMDataTest {
     private GetAGMData agmData;
 
     private static final String TARGET_COMPANY_CODE = "QNBK";
-    private static final String TARGET_NEXT_WORK_DAY = "03-11-2025";
+    private static final String TARGET_NEXT_WORK_DAY = "25-12-2025";
 
     @BeforeClass
     public void setupDatabase() {

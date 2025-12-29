@@ -1,7 +1,7 @@
 package com.example.api;
 
-import com.example.api.dto.CustomerAssetsRequestDTO;
-import com.example.api.dto.CustomerAssetsResponseDTO;
+import com.example.api.dto.BankBalRequestDTO;
+import com.example.api.dto.BankBalResponseDTO;
 import com.example.utils.APIConfigManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Step;
@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * API Client for Customer Assets operations
+ * API Client for Bank Balance operations (BNKBAL)
  * Uses RestAssured to send requests and Jackson for JSON serialization/deserialization
  * Reads SessionID from config file and injects it dynamically into requests
  */
-public class CustomerAssetsAPI {
+public class BankBalAPI {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomerAssetsAPI.class);
+    private static final Logger logger = LoggerFactory.getLogger(BankBalAPI.class);
     private final ObjectMapper objectMapper;
     private final String baseUrl;
     private int lastHttpStatusCode; // Store last HTTP status code for test assertions
@@ -30,7 +30,7 @@ public class CustomerAssetsAPI {
      * Constructor with base URL
      * @param baseUrl Base URL for API endpoints
      */
-    public CustomerAssetsAPI(String baseUrl) {
+    public BankBalAPI(String baseUrl) {
         this.baseUrl = baseUrl;
         this.objectMapper = new ObjectMapper();
     }
@@ -38,24 +38,24 @@ public class CustomerAssetsAPI {
     /**
      * Default constructor - uses base URL from config
      */
-    public CustomerAssetsAPI() {
+    public BankBalAPI() {
         this.baseUrl = APIConfigManager.getBaseUrl();
         this.objectMapper = new ObjectMapper();
     }
 
     /**
-     * Get customer assets using RestAssured with DTO objects
+     * Get bank balance using RestAssured with DTO objects
      * SessionID is read from config file and injected into the request
      *
      * @param url Full API endpoint URL
      * @param nin National Identification Number
-     * @return List of CustomerAssetsResponseDTO objects
+     * @return List of BankBalResponseDTO objects
      */
-    @Step("Get customer assets for NIN: {nin}")
-    public List<CustomerAssetsResponseDTO> getCustomerAssets(String url, String nin) {
+    @Step("Get bank balance for NIN: {nin}")
+    public List<BankBalResponseDTO> getBankBalance(String url, String nin) {
         try {
             logger.info("=".repeat(60));
-            logger.info("GETTING CUSTOMER ASSETS");
+            logger.info("GETTING BANK BALANCE");
             logger.info("=".repeat(60));
             logger.info("URL: {}", url);
             logger.info("NIN: {}", nin);
@@ -69,7 +69,7 @@ public class CustomerAssetsAPI {
             logger.info("SessionID loaded from config: {}", sessionID);
 
             // Build request DTO with SessionID from config
-            CustomerAssetsRequestDTO request = new CustomerAssetsRequestDTO.Builder()
+            BankBalRequestDTO request = new BankBalRequestDTO.Builder()
                     .nin(nin)
                     .sessionId(sessionID)
                     .lstLogin(APIConfigManager.getCurrentDate())
@@ -81,25 +81,67 @@ public class CustomerAssetsAPI {
             return sendRequest(url, request);
 
         } catch (Exception e) {
-            logger.error("ERROR getting customer assets: {}", e.getMessage());
+            logger.error("ERROR getting bank balance: {}", e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to get customer assets", e);
+            throw new RuntimeException("Failed to get bank balance", e);
         }
     }
 
-
     /**
-     * Send CustomerAssets request with custom request DTO
+     * Get bank balance with custom account register type
      *
      * @param url Full API endpoint URL
-     * @param request CustomerAssetsRequestDTO object (sessionId will be auto-injected if null)
-     * @return List of CustomerAssetsResponseDTO objects
+     * @param nin National Identification Number
+     * @param accRegisterType Account register type filter (e.g., "ALL", "SAVINGS", "CHECKING")
+     * @return List of BankBalResponseDTO objects
      */
-    @Step("Send CustomerAssets request with custom DTO")
-    public List<CustomerAssetsResponseDTO> sendRequest(String url, CustomerAssetsRequestDTO request) {
+    @Step("Get bank balance for NIN: {nin} with AccRegisterType: {accRegisterType}")
+    public List<BankBalResponseDTO> getBankBalanceByType(String url, String nin, String accRegisterType) {
         try {
             logger.info("=".repeat(60));
-            logger.info("SENDING CUSTOMER ASSETS REQUEST (RestAssured + DTO)");
+            logger.info("GETTING BANK BALANCE BY ACCOUNT TYPE");
+            logger.info("=".repeat(60));
+            logger.info("URL: {}", url);
+            logger.info("NIN: {}", nin);
+            logger.info("Account Register Type: {}", accRegisterType);
+
+            // Read SessionID from config file
+            String sessionID = APIConfigManager.getSessionID();
+            if (sessionID == null || sessionID.isEmpty()) {
+                throw new RuntimeException("SessionID is required but not found in config file");
+            }
+
+            // Build request DTO with SessionID and account type
+            BankBalRequestDTO request = new BankBalRequestDTO.Builder()
+                    .nin(nin)
+                    .accRegisterType(accRegisterType)
+                    .sessionId(sessionID)
+                    .lstLogin(APIConfigManager.getCurrentDate())
+                    .build();
+
+            logger.info("Request Object created: {}", request);
+
+            return sendRequest(url, request);
+
+        } catch (Exception e) {
+            logger.error("ERROR getting bank balance by type: {}", e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to get bank balance by type", e);
+        }
+    }
+
+    /**
+     * Send BankBal request with custom request DTO
+     *
+     * @param url Full API endpoint URL
+     * @param request BankBalRequestDTO object (sessionId will be auto-injected if null)
+     * @return List of BankBalResponseDTO objects
+     */
+    @Step("Send BankBal request with custom DTO")
+    public List<BankBalResponseDTO> sendRequest(String url, BankBalRequestDTO request) {
+        try {
+            logger.info("=".repeat(60));
+            logger.info("SENDING BANK BALANCE REQUEST (RestAssured + DTO)");
             logger.info("=".repeat(60));
             logger.info("URL: {}", url);
 
@@ -137,15 +179,15 @@ public class CustomerAssetsAPI {
             validateResponse(response);
 
             // Deserialize response to List
-            List<CustomerAssetsResponseDTO> responseList = deserializeResponse(response);
+            List<BankBalResponseDTO> responseList = deserializeResponse(response);
 
             logger.info("=".repeat(60));
             return responseList;
 
         } catch (Exception e) {
-            logger.error("ERROR sending customer assets request: {}", e.getMessage());
+            logger.error("ERROR sending bank balance request: {}", e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to send customer assets request", e);
+            throw new RuntimeException("Failed to send bank balance request", e);
         }
     }
 
@@ -177,19 +219,19 @@ public class CustomerAssetsAPI {
     }
 
     /**
-     * Deserialize response JSON to List of CustomerAssetsResponseDTO
+     * Deserialize response JSON to List of BankBalResponseDTO
      *
      * @param response RestAssured Response object
-     * @return List of CustomerAssetsResponseDTO
+     * @return List of BankBalResponseDTO
      */
-    private List<CustomerAssetsResponseDTO> deserializeResponse(Response response) {
-        List<CustomerAssetsResponseDTO> responseList = new ArrayList<>();
+    private List<BankBalResponseDTO> deserializeResponse(Response response) {
+        List<BankBalResponseDTO> responseList = new ArrayList<>();
 
         try {
             // Try to deserialize as array/list first
-            CustomerAssetsResponseDTO[] responseArray = objectMapper.readValue(
+            BankBalResponseDTO[] responseArray = objectMapper.readValue(
                     response.getBody().asString(),
-                    CustomerAssetsResponseDTO[].class
+                    BankBalResponseDTO[].class
             );
             responseList = List.of(responseArray);
             logger.info("Response deserialized as List with {} items", responseList.size());
@@ -197,9 +239,9 @@ public class CustomerAssetsAPI {
             // If not a list, try as single object and wrap in list
             logger.info("Response is not a list, deserializing as single object");
             try {
-                CustomerAssetsResponseDTO singleResponse = objectMapper.readValue(
+                BankBalResponseDTO singleResponse = objectMapper.readValue(
                         response.getBody().asString(),
-                        CustomerAssetsResponseDTO.class
+                        BankBalResponseDTO.class
                 );
                 responseList.add(singleResponse);
                 logger.info("Response deserialized as single object");
@@ -213,16 +255,16 @@ public class CustomerAssetsAPI {
     }
 
     /**
-     * Get customer assets and return single response object
+     * Get bank balance and return single response object
      * Convenience method that returns single object instead of list
      *
      * @param url Full API endpoint URL
      * @param nin National Identification Number
-     * @return Single CustomerAssetsResponseDTO object
+     * @return Single BankBalResponseDTO object
      */
-    @Step("Get customer assets (single response) for NIN: {nin}")
-    public CustomerAssetsResponseDTO getCustomerAssetsSingle(String url, String nin) {
-        List<CustomerAssetsResponseDTO> responseList = getCustomerAssets(url, nin);
+    @Step("Get bank balance (single response) for NIN: {nin}")
+    public BankBalResponseDTO getBankBalanceSingle(String url, String nin) {
+        List<BankBalResponseDTO> responseList = getBankBalance(url, nin);
         if (responseList != null && !responseList.isEmpty()) {
             return responseList.get(0);
         }

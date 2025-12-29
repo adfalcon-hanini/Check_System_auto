@@ -1,7 +1,7 @@
 package com.example.api;
 
-import com.example.api.dto.CustomerAssetsRequestDTO;
-import com.example.api.dto.CustomerAssetsResponseDTO;
+import com.example.api.dto.PreferredCompaniesRequestDTO;
+import com.example.api.dto.PreferredCompaniesResponseDTO;
 import com.example.utils.APIConfigManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Step;
@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * API Client for Customer Assets operations
+ * API Client for Preferred Companies operations
  * Uses RestAssured to send requests and Jackson for JSON serialization/deserialization
  * Reads SessionID from config file and injects it dynamically into requests
  */
-public class CustomerAssetsAPI {
+public class PreferredCompaniesAPI {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomerAssetsAPI.class);
+    private static final Logger logger = LoggerFactory.getLogger(PreferredCompaniesAPI.class);
     private final ObjectMapper objectMapper;
     private final String baseUrl;
     private int lastHttpStatusCode; // Store last HTTP status code for test assertions
@@ -30,7 +30,7 @@ public class CustomerAssetsAPI {
      * Constructor with base URL
      * @param baseUrl Base URL for API endpoints
      */
-    public CustomerAssetsAPI(String baseUrl) {
+    public PreferredCompaniesAPI(String baseUrl) {
         this.baseUrl = baseUrl;
         this.objectMapper = new ObjectMapper();
     }
@@ -38,24 +38,24 @@ public class CustomerAssetsAPI {
     /**
      * Default constructor - uses base URL from config
      */
-    public CustomerAssetsAPI() {
+    public PreferredCompaniesAPI() {
         this.baseUrl = APIConfigManager.getBaseUrl();
         this.objectMapper = new ObjectMapper();
     }
 
     /**
-     * Get customer assets using RestAssured with DTO objects
+     * Send PREFERRED_COMPANIES request using RestAssured with DTO objects
      * SessionID is read from config file and injected into the request
      *
      * @param url Full API endpoint URL
      * @param nin National Identification Number
-     * @return List of CustomerAssetsResponseDTO objects
+     * @return List of PreferredCompaniesResponseDTO objects
      */
-    @Step("Get customer assets for NIN: {nin}")
-    public List<CustomerAssetsResponseDTO> getCustomerAssets(String url, String nin) {
+    @Step("Send PREFERRED_COMPANIES request for NIN: {nin}")
+    public List<PreferredCompaniesResponseDTO> getPreferredCompanies(String url, String nin) {
         try {
             logger.info("=".repeat(60));
-            logger.info("GETTING CUSTOMER ASSETS");
+            logger.info("SENDING PREFERRED_COMPANIES REQUEST");
             logger.info("=".repeat(60));
             logger.info("URL: {}", url);
             logger.info("NIN: {}", nin);
@@ -69,10 +69,10 @@ public class CustomerAssetsAPI {
             logger.info("SessionID loaded from config: {}", sessionID);
 
             // Build request DTO with SessionID from config
-            CustomerAssetsRequestDTO request = new CustomerAssetsRequestDTO.Builder()
+            PreferredCompaniesRequestDTO request = new PreferredCompaniesRequestDTO.Builder()
                     .nin(nin)
                     .sessionId(sessionID)
-                    .lstLogin(APIConfigManager.getCurrentDate())
+                    .lstLogin(APIConfigManager.getCurrentDate()) // Get current date
                     .build();
 
             logger.info("Request Object created: {}", request);
@@ -81,25 +81,24 @@ public class CustomerAssetsAPI {
             return sendRequest(url, request);
 
         } catch (Exception e) {
-            logger.error("ERROR getting customer assets: {}", e.getMessage());
+            logger.error("ERROR sending PREFERRED_COMPANIES request: {}", e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to get customer assets", e);
+            throw new RuntimeException("Failed to send PREFERRED_COMPANIES request", e);
         }
     }
 
-
     /**
-     * Send CustomerAssets request with custom request DTO
+     * Send PREFERRED_COMPANIES request with custom request DTO
      *
      * @param url Full API endpoint URL
-     * @param request CustomerAssetsRequestDTO object (sessionId will be auto-injected if null)
-     * @return List of CustomerAssetsResponseDTO objects
+     * @param request PreferredCompaniesRequestDTO object (sessionId will be auto-injected if null)
+     * @return List of PreferredCompaniesResponseDTO objects
      */
-    @Step("Send CustomerAssets request with custom DTO")
-    public List<CustomerAssetsResponseDTO> sendRequest(String url, CustomerAssetsRequestDTO request) {
+    @Step("Send PREFERRED_COMPANIES request with custom DTO")
+    public List<PreferredCompaniesResponseDTO> sendRequest(String url, PreferredCompaniesRequestDTO request) {
         try {
             logger.info("=".repeat(60));
-            logger.info("SENDING CUSTOMER ASSETS REQUEST (RestAssured + DTO)");
+            logger.info("SENDING PREFERRED_COMPANIES REQUEST (RestAssured + DTO)");
             logger.info("=".repeat(60));
             logger.info("URL: {}", url);
 
@@ -137,15 +136,15 @@ public class CustomerAssetsAPI {
             validateResponse(response);
 
             // Deserialize response to List
-            List<CustomerAssetsResponseDTO> responseList = deserializeResponse(response);
+            List<PreferredCompaniesResponseDTO> responseList = deserializeResponse(response);
 
             logger.info("=".repeat(60));
             return responseList;
 
         } catch (Exception e) {
-            logger.error("ERROR sending customer assets request: {}", e.getMessage());
+            logger.error("ERROR sending PREFERRED_COMPANIES request: {}", e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to send customer assets request", e);
+            throw new RuntimeException("Failed to send PREFERRED_COMPANIES request", e);
         }
     }
 
@@ -177,19 +176,19 @@ public class CustomerAssetsAPI {
     }
 
     /**
-     * Deserialize response JSON to List of CustomerAssetsResponseDTO
+     * Deserialize response JSON to List of PreferredCompaniesResponseDTO
      *
      * @param response RestAssured Response object
-     * @return List of CustomerAssetsResponseDTO
+     * @return List of PreferredCompaniesResponseDTO
      */
-    private List<CustomerAssetsResponseDTO> deserializeResponse(Response response) {
-        List<CustomerAssetsResponseDTO> responseList = new ArrayList<>();
+    private List<PreferredCompaniesResponseDTO> deserializeResponse(Response response) {
+        List<PreferredCompaniesResponseDTO> responseList = new ArrayList<>();
 
         try {
             // Try to deserialize as array/list first
-            CustomerAssetsResponseDTO[] responseArray = objectMapper.readValue(
+            PreferredCompaniesResponseDTO[] responseArray = objectMapper.readValue(
                     response.getBody().asString(),
-                    CustomerAssetsResponseDTO[].class
+                    PreferredCompaniesResponseDTO[].class
             );
             responseList = List.of(responseArray);
             logger.info("Response deserialized as List with {} items", responseList.size());
@@ -197,9 +196,9 @@ public class CustomerAssetsAPI {
             // If not a list, try as single object and wrap in list
             logger.info("Response is not a list, deserializing as single object");
             try {
-                CustomerAssetsResponseDTO singleResponse = objectMapper.readValue(
+                PreferredCompaniesResponseDTO singleResponse = objectMapper.readValue(
                         response.getBody().asString(),
-                        CustomerAssetsResponseDTO.class
+                        PreferredCompaniesResponseDTO.class
                 );
                 responseList.add(singleResponse);
                 logger.info("Response deserialized as single object");
@@ -213,16 +212,16 @@ public class CustomerAssetsAPI {
     }
 
     /**
-     * Get customer assets and return single response object
+     * Get preferred companies and return single response object
      * Convenience method that returns single object instead of list
      *
      * @param url Full API endpoint URL
      * @param nin National Identification Number
-     * @return Single CustomerAssetsResponseDTO object
+     * @return Single PreferredCompaniesResponseDTO object
      */
-    @Step("Get customer assets (single response) for NIN: {nin}")
-    public CustomerAssetsResponseDTO getCustomerAssetsSingle(String url, String nin) {
-        List<CustomerAssetsResponseDTO> responseList = getCustomerAssets(url, nin);
+    @Step("Get preferred companies (single response) for NIN: {nin}")
+    public PreferredCompaniesResponseDTO getPreferredCompaniesSingle(String url, String nin) {
+        List<PreferredCompaniesResponseDTO> responseList = getPreferredCompanies(url, nin);
         if (responseList != null && !responseList.isEmpty()) {
             return responseList.get(0);
         }

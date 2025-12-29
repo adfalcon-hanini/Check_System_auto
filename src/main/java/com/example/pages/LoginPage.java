@@ -70,23 +70,35 @@ public class LoginPage extends BasePage {
      * Navigate to login/trading page
      */
     public void navigateToLoginPage() {
-        logger.info("Navigating to login page");
+        logger.info("Navigating to login page: " + Constants.TRADING_PAGE_EN);
         navigateTo(Constants.TRADING_PAGE_EN);
+        waitForPageLoad(3000); // Wait for page to fully load
+        logger.info("Login page navigation completed. Current URL: " + driver.getCurrentUrl());
     }
 
 
 
     /**
-     * Click Login in Trading page  icon to open login form (if required)
+     * Click Login in Trading page icon to open login form (if required)
      */
     public void clickLoginInTrading() {
         logger.info("Clicking Login in Trading screen");
         try {
+            // Wait for trading login button to be clickable
+            waitForClickability(tradingLoginButton);
             click(tradingLoginButton);
-            waitForPageLoad(1000);
+            waitForPageLoad(2000); // Increased wait time for form to appear
             logger.info("Login in Trading clicked successfully");
+
+            // Verify login form appeared
+            if (isUsernameFieldDisplayed()) {
+                logger.info("Login form appeared successfully after clicking trading login button");
+            } else {
+                logger.warn("Login form did not appear after clicking trading login button");
+            }
         } catch (Exception e) {
             logger.warn("Login in Trading not found or not clickable: " + e.getMessage());
+            logger.warn("This might be okay if login form is already visible");
         }
     }
 
@@ -98,11 +110,20 @@ public class LoginPage extends BasePage {
     public void enterUsername(String username) {
         logger.info("Entering username: " + username);
         try {
+            // First, check if we need to click the trading login button
+            if (!isUsernameFieldDisplayed()) {
+                logger.info("Username field not visible, attempting to click trading login button");
+                clickLoginInTrading();
+                waitForPageLoad(3000); // Wait for login form to appear
+            }
+
             waitForVisibility(usernameField);
             enterText(usernameField, username);
             logger.info("Username entered successfully using data-testid='login-form-username-input'");
         } catch (Exception e) {
             logger.error("Failed to enter username: " + e.getMessage());
+            logger.error("Current URL: " + driver.getCurrentUrl());
+            logger.error("Page title: " + driver.getTitle());
             throw e;
         }
     }
@@ -385,12 +406,26 @@ public class LoginPage extends BasePage {
     public void waitForLoginForm() {
         logger.info("Waiting for login form to be visible");
         try {
+            // First check if form is already visible
+            if (isUsernameFieldDisplayed() && isPasswordFieldDisplayed() && isLoginButtonDisplayed()) {
+                logger.info("Login form is already visible");
+                return;
+            }
+
+            // If not visible, try clicking the trading login button
+            logger.info("Login form not visible, attempting to click trading login button");
+            clickLoginInTrading();
+
+            // Now wait for form elements
             waitForVisibility(usernameField);
             waitForVisibility(passwordField);
             waitForVisibility(loginButtonSubmit);
             logger.info("Login form is now visible");
         } catch (Exception e) {
-            logger.error("Login form not visible: " + e.getMessage());
+            logger.error("Login form not visible after waiting: " + e.getMessage());
+            logger.error("Current URL: " + driver.getCurrentUrl());
+            logger.error("Page source length: " + driver.getPageSource().length());
+            throw new RuntimeException("Login form did not appear within timeout period", e);
         }
     }
 

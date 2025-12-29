@@ -22,9 +22,9 @@ public class GetCashDataTest {
     private GetCashData cashData;
 
     private static final String TARGET_NIN = "12240";
-    private static final String TARGET_DATE = "27-Nov-2025";
-    private static final String START_DATE = "01-Nov-2025";
-    private static final String END_DATE = "27-Nov-2025";
+    private static final String TARGET_DATE = "21-DEC-2025";
+    private static final String START_DATE = "01-DEC-2025";
+    private static final String END_DATE = "21-DEC-2025";
 
     @BeforeClass
     public void setupDatabase() {

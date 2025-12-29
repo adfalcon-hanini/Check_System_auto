@@ -1,26 +1,40 @@
 package com.example.api;
 
+import com.example.api.dto.LoginRequestDTO;
+import com.example.api.dto.LoginResponseDTO;
 import com.example.utils.APIConfigManager;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Step;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * API Client for Login operations
  * Sends login request, extracts sessionID, and persists to config
+ * Supports both traditional HttpURLConnection and RestAssured approaches
  */
 public class LoginAPI extends BaseAPIClient {
 
     protected static final Logger logger = LoggerFactory.getLogger(LoginAPI.class);
     private static String sessionID;
+    private final ObjectMapper objectMapper;
 
     public LoginAPI(String baseUrl) {
         super(baseUrl);
+        this.objectMapper = new ObjectMapper();
     }
 
     public LoginAPI() {
         super(APIConfigManager.getBaseUrl());
+        this.objectMapper = new ObjectMapper();
         loadSessionIDFromConfig();
     }
 
@@ -344,6 +358,195 @@ public class LoginAPI extends BaseAPIClient {
     public static void setSessionID(String sessionId) {
         sessionID = sessionId;
     }
+
+    // ========== RESTASSURED-BASED METHODS ==========
+
+    /**
+     * Send login request using RestAssured with DTO objects
+     * Accepts request as Java object, serializes to JSON, and deserializes response to List
+     *
+     * @param url Full API endpoint URL
+     * @param request LoginRequestDTO object to be serialized to JSON
+     * @return List of LoginResponseDTO objects deserialized from JSON response
+     */
+    @Step("Send login request using RestAssured to: {url}")
+    public List<LoginResponseDTO> sendLoginRequestWithDTO(String url, LoginRequestDTO request) {
+        try {
+            logger.info("=".repeat(60));
+            logger.info("SENDING LOGIN REQUEST (RestAssured + DTO)");
+            logger.info("=".repeat(60));
+            logger.info("URL: {}", url);
+            logger.info("Request Object: {}", objectMapper.writeValueAsString(request));
+
+            // Build RestAssured request with headers
+            RequestSpecification requestSpec = RestAssured.given()
+                    .contentType("application/json")
+                    .accept("application/json")
+                    .body(request);
+
+            // Add auth token if present
+            if (authToken != null && !authToken.isEmpty()) {
+                requestSpec.header("Authorization", "Bearer " + authToken);
+            }
+
+            // Send POST request
+            Response response = requestSpec.post(url);
+
+            logger.info("-".repeat(60));
+            logger.info("RESPONSE RECEIVED");
+            logger.info("-".repeat(60));
+            logger.info("Status Code: {}", response.getStatusCode());
+            logger.info("Response Body: {}", response.getBody().asString());
+
+            // Deserialize response to List<LoginResponseDTO>
+            List<LoginResponseDTO> responseList = new ArrayList<>();
+
+            // Try to deserialize as array/list first
+            try {
+                responseList = objectMapper.readValue(
+                    response.getBody().asString(),
+                    new TypeReference<List<LoginResponseDTO>>() {}
+                );
+                logger.info("Response deserialized as List with {} items", responseList.size());
+            } catch (Exception e) {
+                // If not a list, try as single object and wrap in list
+                logger.info("Response is not a list, deserializing as single object");
+                LoginResponseDTO singleResponse = objectMapper.readValue(
+                    response.getBody().asString(),
+                    LoginResponseDTO.class
+                );
+                responseList.add(singleResponse);
+            }
+
+            // Check if response is successful (200)
+            if (response.getStatusCode() == 200 && !responseList.isEmpty()) {
+                logger.info("✓ Response Status: SUCCESS (200)");
+
+                // Extract sessionID from first response object
+                String extractedSessionID = responseList.get(0).getSessionID();
+                if (extractedSessionID != null && !extractedSessionID.isEmpty()) {
+                    sessionID = extractedSessionID;
+                    logger.info("✓ SessionID extracted: {}", sessionID);
+
+                    // Save to config
+                    boolean saved = APIConfigManager.updateSessionID(sessionID);
+                    if (saved) {
+                        logger.info("✓ SessionID saved to config file");
+                    }
+                } else {
+                    logger.warn("⚠ SessionID not found in response");
+                }
+            } else {
+                logger.error("✗ Response Status: FAILED ({})", response.getStatusCode());
+            }
+
+            logger.info("=".repeat(60));
+            return responseList;
+
+        } catch (Exception e) {
+            logger.error("ERROR sending login request with DTO: {}", e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send login request with DTO", e);
+        }
+    }
+
+    /**
+     * Generic POST request using RestAssured that accepts any request DTO
+     * and returns response as List of specified type
+     *
+     * @param url Full API endpoint URL
+     * @param request Request object to be serialized to JSON
+     * @param responseType Class type for response deserialization
+     * @param <T> Request type
+     * @param <R> Response type
+     * @return List of response objects of type R
+     */
+    @Step("Send POST request using RestAssured to: {url}")
+    public <T, R> List<R> sendPostRequestWithDTO(String url, T request, Class<R> responseType) {
+        try {
+            logger.info("=".repeat(60));
+            logger.info("SENDING POST REQUEST (RestAssured + Generic DTO)");
+            logger.info("=".repeat(60));
+            logger.info("URL: {}", url);
+            logger.info("Request Type: {}", request.getClass().getSimpleName());
+            logger.info("Response Type: {}", responseType.getSimpleName());
+
+            // Build RestAssured request
+            RequestSpecification requestSpec = RestAssured.given()
+                    .contentType("application/json")
+                    .accept("application/json")
+                    .body(request);
+
+            // Add auth token if present
+            if (authToken != null && !authToken.isEmpty()) {
+                requestSpec.header("Authorization", "Bearer " + authToken);
+            }
+
+            // Send POST request
+            Response response = requestSpec.post(url);
+
+            logger.info("-".repeat(60));
+            logger.info("RESPONSE RECEIVED");
+            logger.info("-".repeat(60));
+            logger.info("Status Code: {}", response.getStatusCode());
+            logger.info("Response Body: {}", response.getBody().asString());
+
+            // Deserialize response to List
+            List<R> responseList = new ArrayList<>();
+
+            try {
+                // Try as list first
+                responseList = objectMapper.readValue(
+                    response.getBody().asString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, responseType)
+                );
+                logger.info("Response deserialized as List with {} items", responseList.size());
+            } catch (Exception e) {
+                // If not a list, deserialize as single object
+                logger.info("Response is not a list, deserializing as single object");
+                R singleResponse = objectMapper.readValue(
+                    response.getBody().asString(),
+                    responseType
+                );
+                responseList.add(singleResponse);
+            }
+
+            logger.info("=".repeat(60));
+            return responseList;
+
+        } catch (Exception e) {
+            logger.error("ERROR sending POST request with DTO: {}", e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send POST request with DTO", e);
+        }
+    }
+
+    /**
+     * Send login request using RestAssured and return single response object
+     * Convenience method that returns single object instead of list
+     *
+     * @param url Full API endpoint URL
+     * @param request LoginRequestDTO object
+     * @return Single LoginResponseDTO object
+     */
+    @Step("Send login request (single response) using RestAssured to: {url}")
+    public LoginResponseDTO sendLoginRequestSingle(String url, LoginRequestDTO request) {
+        List<LoginResponseDTO> responseList = sendLoginRequestWithDTO(url, request);
+        if (responseList != null && !responseList.isEmpty()) {
+            return responseList.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * Get ObjectMapper instance for custom serialization/deserialization
+     * @return ObjectMapper instance
+     */
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    // ========== END RESTASSURED METHODS ==========
 
     /**
      * Clear sessionID from memory and config
