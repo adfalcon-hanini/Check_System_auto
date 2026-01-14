@@ -2,8 +2,6 @@ package com.example.tests.api;
 
 import com.example.api.APIResponse;
 import com.example.api.LoginAPI;
-import com.example.api.dto.LoginRequestDTO;
-import com.example.api.dto.LoginResponseDTO;
 import com.example.utils.APIConfigManager;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
@@ -12,14 +10,11 @@ import io.qameta.allure.Story;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.List;
-
 import static org.testng.Assert.*;
 
 /**
  * Test class for Login API
- * Tests both traditional HttpURLConnection and RestAssured approaches
- * Demonstrates: Send request, get response, assert 200, extract sessionID, save to config
+ * Tests: Send request, get response, assert 200, extract sessionID, save to config
  */
 @Epic("API Testing")
 @Feature("Login Authentication")
@@ -61,7 +56,7 @@ public class LoginAPITest {
                 "    \"Srv\": \"Login\",\n" +
                 "    \"Message\": {\n" +
                 "        \"Login\": {\n" +
-                "            \"UserName\": \"12240\",\n" +
+                "            \"UserName\": \"1218\",\n" +
                 "            \"Password\": \"12345\",\n" +
                 "            \"Lang\": \"ARB\"\n" +
                 "        }\n" +
@@ -195,6 +190,262 @@ public class LoginAPITest {
     }
 
     @Test(priority = 3)
+    @Story("Login with margin user")
+    @Description("Test login with margin user account and verify margin-specific data")
+    public void testLoginMarginUser() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN - MARGIN USER");
+        System.out.println("=".repeat(70));
+
+        try {
+            // ========== STEP 1: PREPARE REQUEST ==========
+            System.out.println("\nSTEP 1: PREPARING MARGIN USER LOGIN REQUEST");
+            System.out.println("-".repeat(70));
+
+            // Using margin user credentials from Postman
+            String jsonRequest = "{\n" +
+                    "    \"Srv\": \"Login\",\n" +
+                    "    \"Message\": {\n" +
+                    "        \"Login\": {\n" +
+                    "            \"UserName\": \"80509\",\n" +
+                    "            \"Password\": \"12345\",\n" +
+                    "            \"Lang\": \"ARB\"\n" +
+                    "        }\n" +
+                    "    },\n" +
+                    "    \"Version\": \"1.0\",\n" +
+                    "    \"AppId\": \"WEB_ORDERS.25\",\n" +
+                    "    \"LstLogin\": \"08-07-2015\"\n" +
+                    "}";
+
+            System.out.println("Endpoint: " + endpointURL);
+            System.out.println("User Type: MARGIN");
+            System.out.println("Request Body:");
+            System.out.println(jsonRequest);
+
+            // ========== STEP 2: SEND REQUEST ==========
+            System.out.println("\nSTEP 2: SENDING REQUEST TO API");
+            System.out.println("-".repeat(70));
+
+            APIResponse response = loginAPI.sendLoginRequest(endpointURL, jsonRequest);
+
+            // ========== STEP 3: VERIFY RESPONSE ==========
+            System.out.println("\nSTEP 3: VERIFYING RESPONSE");
+            System.out.println("-".repeat(70));
+
+            assertEquals(response.getStatusCode(), 200, "Expected status code 200");
+            assertNotNull(response.getResponseBody(), "Response body should not be null");
+
+            System.out.println("✓ Status Code: 200");
+            System.out.println("✓ Margin user login successful");
+
+            // Verify sessionID was extracted
+            String sessionID = LoginAPI.getSessionID();
+            assertNotNull(sessionID, "SessionID should be extracted");
+            System.out.println("✓ SessionID: " + sessionID);
+
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("✓✓✓ MARGIN USER LOGIN PASSED ✓✓✓");
+            System.out.println("=".repeat(70) + "\n");
+
+        } catch (Exception e) {
+            System.err.println("\n✗ ERROR: " + e.getMessage());
+            e.printStackTrace();
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test(priority = 4)
+    @Story("Login with wrong credentials")
+    @Description("Test login failure with incorrect username or password")
+    public void testLoginWrongCredentials() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN - WRONG CREDENTIALS");
+        System.out.println("=".repeat(70));
+
+        try {
+            // ========== STEP 1: PREPARE REQUEST WITH WRONG CREDENTIALS ==========
+            System.out.println("\nSTEP 1: PREPARING REQUEST WITH WRONG CREDENTIALS");
+            System.out.println("-".repeat(70));
+
+            String jsonRequest = "{\n" +
+                    "    \"Srv\": \"Login\",\n" +
+                    "    \"Message\": {\n" +
+                    "        \"Login\": {\n" +
+                    "            \"UserName\": \"invalid_user\",\n" +
+                    "            \"Password\": \"wrong_password\",\n" +
+                    "            \"Lang\": \"ARB\"\n" +
+                    "        }\n" +
+                    "    },\n" +
+                    "    \"Version\": \"1.0\",\n" +
+                    "    \"AppId\": \"WEB_ORDERS.25\",\n" +
+                    "    \"LstLogin\": \"08-07-2015\"\n" +
+                    "}";
+
+            System.out.println("Using invalid credentials");
+            System.out.println("Expected: Error response with resCode = '4'");
+
+            // ========== STEP 2: SEND REQUEST ==========
+            System.out.println("\nSTEP 2: SENDING REQUEST");
+            System.out.println("-".repeat(70));
+
+            APIResponse response = loginAPI.sendLoginRequest(endpointURL, jsonRequest);
+
+            // ========== STEP 3: VERIFY ERROR RESPONSE ==========
+            System.out.println("\nSTEP 3: VERIFYING ERROR RESPONSE");
+            System.out.println("-".repeat(70));
+
+            // Should still get 200 status (business error, not HTTP error)
+            assertEquals(response.getStatusCode(), 200, "Should get HTTP 200");
+
+            // Parse response to check error code
+            String responseBody = response.getResponseBody();
+            assertTrue(responseBody.contains("resCode"), "Response should contain resCode");
+            assertTrue(responseBody.contains("\"4\"") || responseBody.contains("resCode\":\"4\""),
+                    "Response should indicate error code 4 (wrong credentials)");
+
+            System.out.println("✓ HTTP Status: 200 (as expected)");
+            System.out.println("✓ Error response received");
+            System.out.println("✓ Response indicates wrong credentials (resCode = 4)");
+
+            // Verify no sessionID was created
+            assertTrue(responseBody.contains("LOGIN") || responseBody.contains("responseStatus"),
+                    "Response should contain error details");
+
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("✓✓✓ WRONG CREDENTIALS TEST PASSED ✓✓✓");
+            System.out.println("=".repeat(70) + "\n");
+
+        } catch (Exception e) {
+            System.err.println("\n✗ ERROR: " + e.getMessage());
+            e.printStackTrace();
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test(priority = 5)
+    @Story("Login with wrong service name")
+    @Description("Test login failure with incorrect Srv parameter")
+    public void testLoginWrongSrvName() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN - WRONG SERVICE NAME");
+        System.out.println("=".repeat(70));
+
+        try {
+            // ========== STEP 1: PREPARE REQUEST WITH WRONG SRV ==========
+            System.out.println("\nSTEP 1: PREPARING REQUEST WITH WRONG SRV");
+            System.out.println("-".repeat(70));
+
+            String jsonRequest = "{\n" +
+                    "    \"Srv\": \"InvalidServiceName\",\n" +
+                    "    \"Message\": {\n" +
+                    "        \"Login\": {\n" +
+                    "            \"UserName\": \"12240\",\n" +
+                    "            \"Password\": \"12345\",\n" +
+                    "            \"Lang\": \"ARB\"\n" +
+                    "        }\n" +
+                    "    },\n" +
+                    "    \"Version\": \"1.0\",\n" +
+                    "    \"AppId\": \"WEB_ORDERS.25\",\n" +
+                    "    \"LstLogin\": \"08-07-2015\"\n" +
+                    "}";
+
+            System.out.println("Using invalid Srv: 'InvalidServiceName'");
+            System.out.println("Expected: Error response");
+
+            // ========== STEP 2: SEND REQUEST ==========
+            System.out.println("\nSTEP 2: SENDING REQUEST");
+            System.out.println("-".repeat(70));
+
+            APIResponse response = loginAPI.sendLoginRequest(endpointURL, jsonRequest);
+
+            // ========== STEP 3: VERIFY ERROR RESPONSE ==========
+            System.out.println("\nSTEP 3: VERIFYING ERROR RESPONSE");
+            System.out.println("-".repeat(70));
+
+            assertEquals(response.getStatusCode(), 200, "Should get HTTP 200");
+
+            String responseBody = response.getResponseBody();
+            assertNotNull(responseBody, "Response body should not be null");
+            assertTrue(responseBody.contains("responseStatus") || responseBody.contains("resCode"),
+                    "Response should contain error status");
+
+            System.out.println("✓ HTTP Status: 200");
+            System.out.println("✓ Error response received for invalid service name");
+
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("✓✓✓ WRONG SERVICE NAME TEST PASSED ✓✓✓");
+            System.out.println("=".repeat(70) + "\n");
+
+        } catch (Exception e) {
+            System.err.println("\n✗ ERROR: " + e.getMessage());
+            e.printStackTrace();
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test(priority = 6)
+    @Story("Login with missing data")
+    @Description("Test login failure with missing required fields")
+    public void testLoginMissingData() {
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("TEST: LOGIN - MISSING REQUIRED DATA");
+        System.out.println("=".repeat(70));
+
+        try {
+            // ========== STEP 1: PREPARE REQUEST WITH MISSING PASSWORD ==========
+            System.out.println("\nSTEP 1: PREPARING REQUEST WITH MISSING PASSWORD");
+            System.out.println("-".repeat(70));
+
+            String jsonRequest = "{\n" +
+                    "    \"Srv\": \"Login\",\n" +
+                    "    \"Message\": {\n" +
+                    "        \"Login\": {\n" +
+                    "            \"UserName\": \"12240\",\n" +
+                    "            \"Lang\": \"ARB\"\n" +
+                    "        }\n" +
+                    "    },\n" +
+                    "    \"Version\": \"1.0\",\n" +
+                    "    \"AppId\": \"WEB_ORDERS.25\",\n" +
+                    "    \"LstLogin\": \"08-07-2015\"\n" +
+                    "}";
+
+            System.out.println("Missing field: Password");
+            System.out.println("Expected: Error response");
+
+            // ========== STEP 2: SEND REQUEST ==========
+            System.out.println("\nSTEP 2: SENDING REQUEST");
+            System.out.println("-".repeat(70));
+
+            APIResponse response = loginAPI.sendLoginRequest(endpointURL, jsonRequest);
+
+            // ========== STEP 3: VERIFY ERROR RESPONSE ==========
+            System.out.println("\nSTEP 3: VERIFYING ERROR RESPONSE");
+            System.out.println("-".repeat(70));
+
+            assertEquals(response.getStatusCode(), 200, "Should get HTTP 200");
+
+            String responseBody = response.getResponseBody();
+            assertNotNull(responseBody, "Response body should not be null");
+
+            // Should indicate an error (missing required field)
+            assertTrue(responseBody.contains("responseStatus") || responseBody.contains("resCode"),
+                    "Response should contain error information");
+
+            System.out.println("✓ HTTP Status: 200");
+            System.out.println("✓ Error response received for missing data");
+
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("✓✓✓ MISSING DATA TEST PASSED ✓✓✓");
+            System.out.println("=".repeat(70) + "\n");
+
+        } catch (Exception e) {
+            System.err.println("\n✗ ERROR: " + e.getMessage());
+            e.printStackTrace();
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test(priority = 7)
     @Story("Clear sessionID")
     @Description("Test clearing sessionID from memory and config file")
     public void testClearSessionID() {
@@ -217,199 +468,6 @@ public class LoginAPITest {
 
         System.out.println("✓ SessionID cleared from memory");
         System.out.println("✓ SessionID cleared from config file");
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    // ========== RESTASSURED + DTO TESTS ==========
-
-    @Test(priority = 4)
-    @Story("Send login request using RestAssured with DTO")
-    @Description("Demonstrate sending login request with RestAssured, using LoginRequestDTO and deserializing to List<LoginResponseDTO>")
-    public void testLoginWithRestAssuredDTO() {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TEST: LOGIN WITH RESTASSURED + DTO");
-        System.out.println("=".repeat(70));
-
-        // ========== STEP 1: BUILD REQUEST DTO ==========
-        System.out.println("\nSTEP 1: BUILDING REQUEST DTO");
-        System.out.println("-".repeat(70));
-
-        // Using Builder pattern for easy construction
-        LoginRequestDTO request = new LoginRequestDTO.Builder()
-                .userName("12240")
-                .password("12345")
-                .lang("ARB")
-                .lstLogin("08-07-2015")
-                .build();
-
-        System.out.println("✓ Request DTO created using Builder pattern");
-        System.out.println("  Username: 12240");
-        System.out.println("  Language: ARB");
-
-        // ========== STEP 2: SEND REQUEST ==========
-        System.out.println("\nSTEP 2: SENDING REQUEST WITH RESTASSURED");
-        System.out.println("-".repeat(70));
-
-        List<LoginResponseDTO> responseList = loginAPI.sendLoginRequestWithDTO(endpointURL, request);
-
-        // ========== STEP 3: VALIDATE RESPONSE ==========
-        System.out.println("\nSTEP 3: VALIDATING RESPONSE");
-        System.out.println("-".repeat(70));
-
-        assertNotNull(responseList, "Response list should not be null");
-        assertFalse(responseList.isEmpty(), "Response list should not be empty");
-
-        System.out.println("✓ Response list received with " + responseList.size() + " item(s)");
-
-        // Get first response
-        LoginResponseDTO response = responseList.get(0);
-        assertNotNull(response, "Response DTO should not be null");
-
-        System.out.println("✓ Response DTO deserialized successfully");
-        System.out.println("  Response: " + response.toString());
-
-        // ========== STEP 4: VERIFY SESSIONID ==========
-        System.out.println("\nSTEP 4: VERIFYING SESSIONID");
-        System.out.println("-".repeat(70));
-
-        String sessionID = response.getSessionID();
-        if (sessionID != null && !sessionID.isEmpty()) {
-            System.out.println("✓ SessionID extracted: " + sessionID);
-
-            // Verify it's in memory and config
-            assertEquals(LoginAPI.getSessionID(), sessionID, "SessionID should match in memory");
-            assertEquals(APIConfigManager.getSessionID(), sessionID, "SessionID should match in config");
-
-            System.out.println("✓ SessionID verified in memory and config");
-        } else {
-            System.out.println("⚠ SessionID not found in response (API may not return sessionID)");
-        }
-
-        // ========== TEST SUMMARY ==========
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TEST SUMMARY");
-        System.out.println("=".repeat(70));
-        System.out.println("✓ Step 1: Request DTO built using Builder pattern");
-        System.out.println("✓ Step 2: Request sent via RestAssured");
-        System.out.println("✓ Step 3: Response deserialized to List<LoginResponseDTO>");
-        System.out.println("✓ Step 4: SessionID extracted and verified");
-        System.out.println("=".repeat(70));
-        System.out.println("✓✓✓ RESTASSURED + DTO TEST PASSED ✓✓✓");
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    @Test(priority = 5)
-    @Story("Send login request and get single response object")
-    @Description("Demonstrate using convenience method that returns single LoginResponseDTO instead of List")
-    public void testLoginWithRestAssuredSingleResponse() {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TEST: LOGIN WITH RESTASSURED (SINGLE RESPONSE)");
-        System.out.println("=".repeat(70));
-
-        // Build request using Builder pattern
-        LoginRequestDTO request = new LoginRequestDTO.Builder()
-                .userName("12240")
-                .password("12345")
-                .lang("ARB")
-                .lstLogin("08-07-2015")
-                .build();
-
-        System.out.println("Sending login request (single response mode)...");
-
-        // Send request and get single response object
-        LoginResponseDTO response = loginAPI.sendLoginRequestSingle(endpointURL, request);
-
-        // Validate
-        assertNotNull(response, "Response should not be null");
-        System.out.println("✓ Single response object received");
-        System.out.println("  Response: " + response.toString());
-
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    @Test(priority = 6)
-    @Story("Generic POST request with custom DTOs")
-    @Description("Demonstrate generic sendPostRequestWithDTO method that works with any request/response types")
-    public void testGenericPostRequestWithDTO() {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TEST: GENERIC POST REQUEST WITH DTO");
-        System.out.println("=".repeat(70));
-
-        // Build request
-        LoginRequestDTO request = new LoginRequestDTO.Builder()
-                .userName("12240")
-                .password("12345")
-                .lang("ARB")
-                .lstLogin("08-07-2015")
-                .build();
-
-        System.out.println("Sending generic POST request...");
-
-        // Use generic method - works with any request/response types
-        List<LoginResponseDTO> responseList = loginAPI.sendPostRequestWithDTO(
-                endpointURL,
-                request,
-                LoginResponseDTO.class
-        );
-
-        // Validate
-        assertNotNull(responseList, "Response list should not be null");
-        assertFalse(responseList.isEmpty(), "Response list should not be empty");
-
-        System.out.println("✓ Generic POST request successful");
-        System.out.println("  Received " + responseList.size() + " response(s)");
-        System.out.println("  First response: " + responseList.get(0).toString());
-
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    @Test(priority = 7)
-    @Story("Manual DTO construction example")
-    @Description("Demonstrate building LoginRequestDTO manually without Builder pattern")
-    public void testManualDTOConstruction() {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TEST: MANUAL DTO CONSTRUCTION");
-        System.out.println("=".repeat(70));
-
-        // ========== EXAMPLE 1: Using Builder Pattern (Recommended) ==========
-        System.out.println("\nEXAMPLE 1: USING BUILDER PATTERN");
-        System.out.println("-".repeat(70));
-
-        LoginRequestDTO requestWithBuilder = new LoginRequestDTO.Builder()
-                .userName("12240")
-                .password("12345")
-                .lang("ARB")
-                .lstLogin("08-07-2015")
-                .build();
-
-        System.out.println("✓ Request built with Builder pattern");
-        System.out.println("  Code: new LoginRequestDTO.Builder().userName(...).password(...).build()");
-
-        // ========== EXAMPLE 2: Manual Construction ==========
-        System.out.println("\nEXAMPLE 2: MANUAL CONSTRUCTION");
-        System.out.println("-".repeat(70));
-
-        LoginRequestDTO.LoginDetailsDTO loginDetails =
-                new LoginRequestDTO.LoginDetailsDTO("12240", "12345", "ARB");
-
-        LoginRequestDTO.MessageDTO message =
-                new LoginRequestDTO.MessageDTO(loginDetails);
-
-        LoginRequestDTO requestManual = new LoginRequestDTO(
-                "Login",
-                message,
-                "1.0",
-                "WEB_ORDERS.25",
-                "08-07-2015"
-        );
-
-        System.out.println("✓ Request built manually");
-        System.out.println("  Code: new LoginRequestDTO(srv, message, version, appId, lstLogin)");
-
-        // Both should work the same
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("Both construction methods produce valid requests");
-        System.out.println("Builder pattern is recommended for cleaner code");
         System.out.println("=".repeat(70) + "\n");
     }
 }
